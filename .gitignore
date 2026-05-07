@@ -1,0 +1,5 @@
+node_modules/
+.env
+output/*.webp
+output/*.png
+output/*.jpg
