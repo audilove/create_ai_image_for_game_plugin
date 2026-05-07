@@ -29,6 +29,10 @@ class PromptBuilder {
       extra = {},
     } = params;
 
+    if (!Array.isArray(referenceImages) || referenceImages.length === 0) {
+      throw new Error('[GameImageGen] At least one reference image is required for generation. Add files to the reference/ folder and reload references.');
+    }
+
     const dimensions = ASPECT_RATIOS[aspectRatio] || ASPECT_RATIOS['1/1'];
     const typeHints = TYPE_PROMPTS[type] || TYPE_PROMPTS['icon'];
     const baseContext = customBaseContext || BASE_CONTEXT;
@@ -72,7 +76,11 @@ class PromptBuilder {
     lines.push(`DESCRIPTION: ${prompt}`);
     lines.push(`ASSET TYPE: ${type}`);
     lines.push(`CANVAS SIZE: ${dimensions.width}x${dimensions.height}px (aspect ratio ${aspectRatio})`);
-    lines.push(`TRANSPARENT BACKGROUND: ${transparent ? 'YES — pure alpha, no background whatsoever' : 'NO — render with appropriate background'}`);
+    lines.push(
+      `TRANSPARENT BACKGROUND: ${transparent
+        ? 'YES — render object on a clean, solid, high-contrast background for best background removal (do NOT blend subject with background)'
+        : 'NO — render with appropriate background'}`
+    );
 
     if (typeHints.length > 0) {
       lines.push(`\nTYPE-SPECIFIC REQUIREMENTS:`);
@@ -88,11 +96,13 @@ class PromptBuilder {
       Object.entries(extra).forEach(([k, v]) => lines.push(`  - ${k}: ${v}`));
     }
 
+    lines.push(`\nCRITICAL: Reference images are mandatory. Use them as the primary visual source and reproduce their style as closely as possible (palette, lighting, materials, rendering, and level of detail).`);
+
     if (transparent) {
-      lines.push(`\nCRITICAL: The output MUST have a completely transparent background (alpha=0 for all background pixels). Only the ${type} itself should be visible.`);
+      lines.push(`\nCRITICAL: For background-removal workflow, place the ${type} on a flat, contrasting backdrop (for example bright green/blue/magenta opposite to the subject colors). Keep hard separation and avoid haze, shadows, gradients, or color spill into the subject edges.`);
     }
 
-    lines.push(`\nPlease generate the image now following all the rules above and matching the style of the reference images provided.`);
+    lines.push(`\nPlease generate the image now following all the rules above and matching the reference images as closely as possible.`);
 
     return lines.join('\n');
   }

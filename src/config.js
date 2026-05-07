@@ -145,6 +145,7 @@ const DEFAULTS = {
   referenceExtensions: ['.jpg', '.jpeg', '.png', '.webp', '.gif'],
   apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
   requestTimeout: 120000,
+  maxConcurrentGenerations: 4,
 };
 
 module.exports = {

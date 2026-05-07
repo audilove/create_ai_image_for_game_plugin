@@ -40,6 +40,7 @@ class GameImageGenerator {
    * @param {string}  [options.siteUrl]       - Your site URL for OpenRouter rankings
    * @param {string}  [options.siteName]      - Your site name for OpenRouter rankings
    * @param {number}  [options.requestTimeout] - API timeout in ms (default: 120000)
+   * @param {number}  [options.maxConcurrentGenerations] - Default max parallel workers for generateBatch() (default: 4)
    */
   constructor(options = {}) {
     const apiKey = options.apiKey || process.env.OPENROUTER_API_KEY;
@@ -47,6 +48,11 @@ class GameImageGenerator {
     this.saveOutput = options.saveOutput !== false;
     this.outputDir = path.resolve(options.outputDir || DEFAULTS.outputDir);
     this.baseContext = options.baseContext || null;
+    this.maxConcurrentGenerations = Math.max(
+      1,
+      Number(options.maxConcurrentGenerations || DEFAULTS.maxConcurrentGenerations || 4)
+    );
+    this._requestCounter = 0;
 
     this._generator = new Generator(apiKey, options);
     this._referenceLoader = new ReferenceLoader(options.referenceDir, options);
@@ -119,7 +125,7 @@ class GameImageGenerator {
         ? `${params.filename}.webp`
         : this._generateFilename(params);
       savedPath = path.join(this.outputDir, filename);
-      fs.writeFileSync(savedPath, webpBuffer);
+      await fs.promises.writeFile(savedPath, webpBuffer);
     }
 
     return {
@@ -135,6 +141,57 @@ class GameImageGenerator {
       prompt: params.prompt,
       referenceCount: referenceImages.length,
     };
+  }
+
+  /**
+   * Generate multiple assets concurrently with optional concurrency limit.
+   *
+   * @param {Array<object>} requests
+   * @param {object} [options]
+   * @param {number} [options.concurrency] - Max parallel generations (default: instance maxConcurrentGenerations)
+   * @param {boolean} [options.continueOnError] - If true, returns per-item errors instead of failing whole batch
+   * @returns {Promise<Array<GenerationResult|{error: string, index: number, params: object}>>}
+   */
+  async generateBatch(requests, options = {}) {
+    if (!Array.isArray(requests) || requests.length === 0) {
+      throw new Error('[GameImageGen] requests must be a non-empty array.');
+    }
+
+    const concurrency = Math.max(
+      1,
+      Number(options.concurrency || this.maxConcurrentGenerations || 1)
+    );
+    const continueOnError = options.continueOnError === true;
+    const results = new Array(requests.length);
+    let nextIndex = 0;
+
+    const worker = async () => {
+      while (true) {
+        const currentIndex = nextIndex++;
+        if (currentIndex >= requests.length) return;
+
+        const params = requests[currentIndex];
+
+        try {
+          results[currentIndex] = await this.generate(params);
+        } catch (err) {
+          if (!continueOnError) {
+            throw err;
+          }
+          results[currentIndex] = {
+            error: err.message || String(err),
+            index: currentIndex,
+            params,
+          };
+        }
+      }
+    };
+
+    const workerCount = Math.min(concurrency, requests.length);
+    const workers = Array.from({ length: workerCount }, () => worker());
+    await Promise.all(workers);
+
+    return results;
   }
 
   /**
@@ -157,6 +214,7 @@ class GameImageGenerator {
       referenceImages: refs.map(r => r.filename),
       supportedAspectRatios: Object.keys(ASPECT_RATIOS),
       supportedTypes: Object.keys(TYPE_PROMPTS),
+      maxConcurrentGenerations: this.maxConcurrentGenerations,
     };
   }
 
@@ -175,7 +233,10 @@ class GameImageGenerator {
       .slice(0, 40)
       .replace(/-+$/, '');
     const ts = Date.now();
-    return `${type}_${ratio}_${slug}_${ts}.webp`;
+    this._requestCounter += 1;
+    const seq = this._requestCounter.toString(36);
+    const rand = Math.random().toString(36).slice(2, 8);
+    return `${type}_${ratio}_${slug}_${ts}_${seq}_${rand}.webp`;
   }
 }
 

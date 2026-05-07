@@ -54,6 +54,14 @@ const result = await gen.generate({
   filename: string,       // Custom filename (no extension, saved as .webp)
   extra: object,          // Any extra key-value hints passed into prompt
 });
+
+const batchResults = await gen.generateBatch([
+  { prompt: string, type: string, aspectRatio: string, transparent: boolean },
+  { prompt: string, type: string, aspectRatio: string, transparent: boolean },
+], {
+  concurrency: number,    // max parallel requests (default from constructor)
+  continueOnError: boolean, // keep batch running if one item fails
+});
 ```
 
 ### Return value
@@ -130,6 +138,8 @@ const result = await gen.generate({
 - `transparent: true` — AI removes background, returns WebP with alpha channel
 
 Background removal uses a professional AI service automatically. If both API keys are present, Replicate takes priority and falls back to remove.bg on insufficient credits.
+
+**Important for transparent workflow:** when generating assets for later cutout, place the subject on a flat, high-contrast background (opposite to subject colors) so the background-removal step can isolate edges cleanly without quality loss.
 
 **When to use transparent:**
 
@@ -238,6 +248,8 @@ Place style reference images in the `reference/` folder. Supported: `.jpg`, `.jp
 
 The plugin automatically loads up to 4 reference images and sends them to the model with every generation request. The model matches their color palette, shading technique, and detail level.
 
+**Mandatory rule:** always generate with references and match them as closely as possible (style, render quality, materials, lighting, and color language).
+
 **Best practices:**
 - Use 2–4 images from the same game or art direction
 - Mix subjects (character + item + background) so the model learns the **style**, not the content
@@ -302,6 +314,7 @@ new GameImageGenerator({
   saveOutput: boolean,         // Save to disk, default: true
   baseContext: string,         // Override built-in Pixar-3D art context
   requestTimeout: number,      // ms, default: 120000
+  maxConcurrentGenerations: number, // default: 4, used by generateBatch()
   // Background removal:
   bgRemovalService: string,    // 'replicate' | 'removebg' | 'none' (auto-detected)
   replicateApiToken: string,   // Override REPLICATE_API_TOKEN env var
@@ -332,7 +345,7 @@ new GameImageGenerator({
 | Wrong type for the asset | Always set `type` — it controls dimensions and composition |
 | Not setting `context` | Always add game genre/theme for consistent style |
 | `transparent: true` without a removal API key | Add `REPLICATE_API_TOKEN` or `REMOVE_BG_API_KEY` to `.env` |
-| Generating many assets in parallel | Generate **sequentially** — APIs have rate limits |
+| Generating many assets in parallel without control | Use `generateBatch(..., { concurrency: N })` to run requests fast with a safe parallel limit |
 
 ---
 

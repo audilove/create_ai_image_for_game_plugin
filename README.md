@@ -30,6 +30,8 @@ cp .env.example .env
 
 When `transparent: true`, the plugin uses a professional AI service to remove backgrounds. This gives pixel-perfect results — correct hair, fine details, complex edges.
 
+For best cutout quality, generate the subject on a flat high-contrast background (opposite to subject colors). This minimizes edge artifacts during background removal.
+
 ### Option A — Replicate + BRIA-RMBG-2.0 (recommended)
 
 Best quality. Uses a state-of-the-art semantic segmentation model.
@@ -71,6 +73,21 @@ console.log(result.path);    // ./output/icon_1-1_a-glowing-health-potion_123456
 console.log(result.base64);  // base64 string for inline use
 ```
 
+### Batch generation (parallel)
+
+```javascript
+const requests = [
+  { prompt: 'Magic sword with blue flame', type: 'icon', aspectRatio: '1/1', transparent: true },
+  { prompt: 'Ancient shield with runes', type: 'icon', aspectRatio: '1/1', transparent: true },
+  { prompt: 'Gold treasure chest', type: 'item', aspectRatio: '1/1', transparent: true },
+];
+
+const results = await gen.generateBatch(requests, {
+  concurrency: 10,      // process up to 10 requests in parallel
+  continueOnError: true // keep processing even if one request fails
+});
+```
+
 ---
 
 ## Parameters
@@ -86,6 +103,10 @@ console.log(result.base64);  // base64 string for inline use
 | `filename`    | string  | auto      | Custom filename for output (without extension) |
 | `extra`       | object  | —         | Any extra key-value prompt modifiers |
 
+Also available:
+
+- `generateBatch(requests, options)` — runs multiple generation requests in parallel.
+
 ---
 
 ## Style References
@@ -100,6 +121,8 @@ reference/
 ```
 
 The plugin loads up to 4 reference images and sends them to the model with every generation request. The model matches their art style automatically.
+
+References are required for consistent generations, and outputs should stay as close as possible to reference style (lighting, palette, materials, and rendering quality).
 
 Supported formats: `.jpg`, `.jpeg`, `.png`, `.webp`
 
@@ -118,6 +141,7 @@ const gen = new GameImageGenerator({
   saveOutput: boolean,         // Save to disk, default: true
   baseContext: string,         // Override built-in art context
   requestTimeout: number,      // ms, default: 120000
+  maxConcurrentGenerations: number, // default parallel workers for generateBatch(), default: 4
   siteUrl: string,             // Your site for OpenRouter rankings
   siteName: string,            // Your site name
 });
