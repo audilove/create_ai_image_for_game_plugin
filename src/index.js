@@ -9,7 +9,15 @@ const Generator = require('./generator');
 const ReferenceLoader = require('./reference-loader');
 const PromptBuilder = require('./prompt-builder');
 const ImageProcessor = require('./image-processor');
-const { DEFAULTS, ASPECT_RATIOS, HD_ASPECT_RATIOS, HD_TYPES, TYPE_PROMPTS } = require('./config');
+const LayoutDetector = require('./layout-detector');
+const {
+  DEFAULTS,
+  ASPECT_RATIOS,
+  HD_ASPECT_RATIOS,
+  HD_TYPES,
+  TYPE_PROMPTS,
+  LOCKED_ASPECT_RATIOS,
+} = require('./config');
 
 /**
  * GameImageGenerator — main plugin class.
@@ -48,6 +56,10 @@ class GameImageGenerator {
     this.saveOutput = options.saveOutput !== false;
     this.outputDir = path.resolve(options.outputDir || DEFAULTS.outputDir);
     this.baseContext = options.baseContext || null;
+    this.layoutDetectionModel =
+      options.layoutDetectionModel ||
+      process.env.OPENROUTER_LAYOUT_DETECTION_MODEL ||
+      DEFAULTS.layoutDetectionModel;
     this.maxConcurrentGenerations = Math.max(
       1,
       Number(options.maxConcurrentGenerations || DEFAULTS.maxConcurrentGenerations || 4)
@@ -58,6 +70,13 @@ class GameImageGenerator {
     this._referenceLoader = new ReferenceLoader(options.referenceDir, options);
     this._promptBuilder = new PromptBuilder();
     this._processor = new ImageProcessor(options);
+    this._layoutDetector = new LayoutDetector({
+      generator: this._generator,
+      assetGenerator: this,
+      outputDir: this.outputDir,
+      saveOutput: this.saveOutput,
+      layoutDetectionModel: this.layoutDetectionModel,
+    });
 
     if (this.saveOutput) {
       this._ensureOutputDir();
@@ -85,12 +104,30 @@ class GameImageGenerator {
     }
 
     const type = params.type || DEFAULTS.defaultType;
-    const aspectRatio = params.aspectRatio || DEFAULTS.defaultAspectRatio;
+    // Some types (UI prototypes) lock their aspect ratio to make sure the
+    // model produces a real screen mockup at the right shape regardless of
+    // what the caller passes.
+    const aspectRatio =
+      LOCKED_ASPECT_RATIOS[type] || params.aspectRatio || DEFAULTS.defaultAspectRatio;
     const transparent = params.transparent === true;
     const isHD = HD_TYPES.has(type);
 
-    // Load reference images (cached after first load)
-    const referenceImages = this._referenceLoader.load();
+    // Reference image resolution:
+    //   1. params.references — explicit list ({base64, mimeType, filename?}[]).
+    //   2. params.referenceDir — load from a custom directory.
+    //   3. fallback to the constructor-configured reference directory.
+    let referenceImages;
+    if (Array.isArray(params.references) && params.references.length > 0) {
+      referenceImages = params.references;
+    } else if (params.referenceDir) {
+      const adhoc = new ReferenceLoader(params.referenceDir, {
+        maxReferenceImages: this._referenceLoader.maxImages,
+        referenceExtensions: this._referenceLoader.extensions,
+      });
+      referenceImages = adhoc.load();
+    } else {
+      referenceImages = this._referenceLoader.load();
+    }
 
     // Build prompt — always use model-native dimensions for generation prompt
     const { systemText, contentParts, dimensions } = this._promptBuilder.build(
@@ -195,6 +232,30 @@ class GameImageGenerator {
   }
 
   /**
+   * Detect UI elements on a screenshot and export them as separate files.
+   *
+   * @param {object} params
+   * @param {string} [params.imagePath]      - Absolute or relative path to source screenshot.
+   * @param {Buffer} [params.imageBuffer]    - Raw screenshot buffer.
+   * @param {string} [params.imageBase64]    - Base64 encoded screenshot.
+   * @param {string} [params.hint]           - Optional instructions for detector.
+   * @param {number} [params.maxAssets=120]  - Upper bound of detected elements.
+   * @param {number} [params.minAssetSize=12]- Drop very small detections.
+   * @param {boolean}[params.includeBase64]  - Include base64 in response for each asset.
+   * @param {boolean}[params.saveOutput]     - Override constructor saveOutput for this call.
+   *
+   * @returns {Promise<DetectionResult>}
+   */
+  async detectLayoutAssets(params = {}) {
+    return this._layoutDetector.detectAndGenerate(params);
+  }
+
+  /** Только план ассетов по скриншоту (без генерации). Для бота: подтверждение перед generate. */
+  async detectLayoutPlan(params = {}) {
+    return this._layoutDetector.detectPlan(params);
+  }
+
+  /**
    * Reload reference images from disk (clears cache).
    */
   reloadReferences() {
@@ -215,6 +276,7 @@ class GameImageGenerator {
       supportedAspectRatios: Object.keys(ASPECT_RATIOS),
       supportedTypes: Object.keys(TYPE_PROMPTS),
       maxConcurrentGenerations: this.maxConcurrentGenerations,
+      layoutDetectionModel: this.layoutDetectionModel,
     };
   }
 
@@ -259,4 +321,16 @@ module.exports.TYPE_PROMPTS = TYPE_PROMPTS;
  * @property {string}      aspectRatio - Aspect ratio used
  * @property {string}      prompt      - Original prompt used
  * @property {number}      referenceCount - Number of reference images used
+ */
+
+/**
+ * @typedef {object} DetectionResult
+ * @property {string|null} outputDir
+ * @property {string|null} manifestPath
+ * @property {number} totalDetected
+ * @property {number} totalGenerated
+ * @property {number} sourceWidth
+ * @property {number} sourceHeight
+ * @property {Array<object>} assets
+ * @property {object} manifest
  */

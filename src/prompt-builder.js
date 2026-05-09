@@ -29,9 +29,7 @@ class PromptBuilder {
       extra = {},
     } = params;
 
-    if (!Array.isArray(referenceImages) || referenceImages.length === 0) {
-      throw new Error('[GameImageGen] At least one reference image is required for generation. Add files to the reference/ folder and reload references.');
-    }
+    const refs = Array.isArray(referenceImages) ? referenceImages : [];
 
     const dimensions = ASPECT_RATIOS[aspectRatio] || ASPECT_RATIOS['1/1'];
     const typeHints = TYPE_PROMPTS[type] || TYPE_PROMPTS['icon'];
@@ -47,9 +45,10 @@ class PromptBuilder {
       typeHints,
       style,
       extra,
+      hasReferences: refs.length > 0,
     });
 
-    const contentParts = this._buildContentParts(userText, referenceImages);
+    const contentParts = this._buildContentParts(userText, refs);
 
     return {
       systemText,
@@ -69,7 +68,7 @@ class PromptBuilder {
     return text;
   }
 
-  _buildUserText({ prompt, type, aspectRatio, dimensions, transparent, typeHints, style, extra }) {
+  _buildUserText({ prompt, type, aspectRatio, dimensions, transparent, typeHints, style, extra, hasReferences = true }) {
     const lines = [];
 
     lines.push(`TASK: Generate a game asset.`);
@@ -96,7 +95,11 @@ class PromptBuilder {
       Object.entries(extra).forEach(([k, v]) => lines.push(`  - ${k}: ${v}`));
     }
 
-    lines.push(`\nCRITICAL: Reference images are mandatory. Use them as the primary visual source and reproduce their style as closely as possible (palette, lighting, materials, rendering, and level of detail).`);
+    if (hasReferences) {
+      lines.push(`\nCRITICAL: Reference images are mandatory. Use them as the primary visual source and reproduce their style as closely as possible (palette, lighting, materials, rendering, and level of detail).`);
+    } else {
+      lines.push(`\nNOTE: No reference images are provided. Follow the BASE STYLE rules from the system prompt (Pixar-style 3D, vibrant saturated colors, soft glows, polished materials) and any STYLE NOTES above.`);
+    }
 
     if (transparent) {
       lines.push(`\nCRITICAL: For background-removal workflow, place the ${type} on a flat, contrasting backdrop (for example bright green/blue/magenta opposite to the subject colors). Keep hard separation and avoid haze, shadows, gradients, or color spill into the subject edges.`);

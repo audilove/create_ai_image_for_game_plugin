@@ -2,7 +2,7 @@
 
 const sharp = require('sharp');
 const BackgroundRemover = require('./bg-remover');
-const { DEFAULTS } = require('./config');
+const { DEFAULTS, FULLBLEED_TYPES } = require('./config');
 
 /**
  * Converts raw image data to WebP.
@@ -26,10 +26,10 @@ class ImageProcessor {
    */
   async process(inputBuffer, options = {}) {
     const { transparent = false, width, height, type = 'icon' } = options;
-    // Backgrounds and illustrations fill the canvas edge-to-edge (cover).
-    // Icons, characters, buttons etc. fit inside without cropping (contain).
-    const HD_FILL_TYPES = new Set(['background', 'illustration']);
-    const resizeFit = HD_FILL_TYPES.has(type) ? 'cover' : 'contain';
+    // Backgrounds, illustrations and full-screen prototypes fill the canvas
+    // edge-to-edge (cover). Icons, characters, buttons etc. fit inside
+    // without cropping (contain).
+    const resizeFit = FULLBLEED_TYPES.has(type) ? 'cover' : 'contain';
 
     let workingBuffer = inputBuffer;
 

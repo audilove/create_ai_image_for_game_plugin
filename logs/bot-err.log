@@ -1,0 +1,34 @@
+2026-05-08T13:29:52: [bot] failed to connect to MongoDB: option logger is not supported
+2026-05-08T13:29:52: [bot] failed to connect to MongoDB: option logger is not supported
+2026-05-08T13:29:53: [bot] failed to connect to MongoDB: option logger is not supported
+2026-05-08T13:29:54: [bot] failed to connect to MongoDB: option logger is not supported
+2026-05-08T13:29:54: [bot] failed to connect to MongoDB: option logger is not supported
+2026-05-08T13:29:55: [bot] failed to connect to MongoDB: option logger is not supported
+2026-05-08T13:29:56: [bot] failed to connect to MongoDB: option logger is not supported
+2026-05-08T13:29:57: [bot] failed to connect to MongoDB: option logger is not supported
+2026-05-08T13:29:57: [bot] failed to connect to MongoDB: option logger is not supported
+2026-05-08T13:29:58: [bot] failed to connect to MongoDB: option logger is not supported
+2026-05-08T13:29:59: [bot] failed to connect to MongoDB: option logger is not supported
+2026-05-08T13:30:00: [bot] failed to connect to MongoDB: option logger is not supported
+2026-05-08T13:30:00: [bot] failed to connect to MongoDB: option logger is not supported
+2026-05-08T13:30:01: [bot] failed to connect to MongoDB: option logger is not supported
+2026-05-08T13:30:02: [bot] failed to connect to MongoDB: option logger is not supported
+2026-05-08T13:30:03: [bot] failed to connect to MongoDB: option logger is not supported
+2026-05-08T21:13:18: detect layout flow failed Error: [GameImageGen] API error 402: {
+  "error": {
+    "message": "This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 33940. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+    "code": 402,
+    "metadata": {
+      "provider_name": null
+    }
+  },
+  "user_id": "user_32Q8lZVgzgSSyRvNlDzV3KZKuXo"
+}
+    at Generator.completeText (/apps/create_ai_image_for_game_plugin/src/generator.js:131:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async LayoutDetector._requestDetections (/apps/create_ai_image_for_game_plugin/src/layout-detector.js:227:17)
+    at async LayoutDetector.detectAndGenerate (/apps/create_ai_image_for_game_plugin/src/layout-detector.js:78:18)
+    at async processDetectLayoutJob (/apps/create_ai_image_for_game_plugin/src/bot/handlers/createImage.js:431:24)
+    at async processGenerationJob (/apps/create_ai_image_for_game_plugin/src/bot/handlers/createImage.js:233:11)
+    at async /apps/create_ai_image_for_game_plugin/src/bot/handlers/createImage.js:41:7
+    at async /apps/create_ai_image_for_game_plugin/node_modules/bullmq/dist/cjs/classes/worker.js:589:32
