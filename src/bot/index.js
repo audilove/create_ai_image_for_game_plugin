@@ -13,6 +13,7 @@ const kb = require('./keyboards');
 const registerMainMenu = require('./handlers/mainMenu');
 const registerRules = require('./handlers/rules');
 const registerStyles = require('./handlers/styles');
+const registerRemoveBg = require('./handlers/removeBg');
 const registerCreateImage = require('./handlers/createImage');
 
 /**
@@ -116,6 +117,7 @@ function createBot(options) {
   registerMainMenu(bot, deps);
   registerRules(bot, deps);
   registerStyles(bot, deps);
+  registerRemoveBg(bot, deps);
   registerCreateImage(bot, deps);
 
   // Fallback for unrelated text / unknown callbacks

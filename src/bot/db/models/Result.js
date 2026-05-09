@@ -13,6 +13,8 @@ const paramsSchema = new Schema(
     contextText: { type: String, default: null },
     styleId: { type: String, default: null },
     styleLabel: { type: String, default: null },
+    packKind: { type: String, default: null },
+    packUserTheme: { type: String, default: null },
   },
   { _id: false },
 );

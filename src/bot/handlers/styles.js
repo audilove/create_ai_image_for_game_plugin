@@ -91,8 +91,52 @@ function register(bot, deps) {
     await showList(ctx);
   });
 
+  bot.action(/^act:style_from_pack:([a-z0-9]+)$/i, async (ctx) => {
+    await safeAnswerCb(ctx);
+    const resultId = ctx.match[1];
+    const buf = await storage.loadResultBuffer(ctx.from.id, resultId);
+    const meta = await storage.getResult(ctx.from.id, resultId);
+    if (!buf || !meta) {
+      await ctx.reply(texts.postActions.sourceLost, {
+        parse_mode: 'HTML',
+        ...kb.backToMenu(),
+      });
+      return;
+    }
+    sessions.set(ctx.from.id, {
+      mode: 'style_name_prefilled',
+      styleDraft: { name: null, photos: [buf] },
+    });
+    await ctx.reply(texts.styles.askNameFromAssetPack, {
+      parse_mode: 'HTML',
+      ...kb.cancelOnly(),
+    });
+  });
+
   bot.on('text', async (ctx, next) => {
     const session = sessions.get(ctx.from.id);
+    if (session.mode === 'style_name_prefilled') {
+      const name = (ctx.message.text || '').trim();
+      if (!name) return ctx.reply(texts.styles.nameRequired);
+      if (name.length > 40) return ctx.reply(texts.styles.nameTooLong);
+      if (!session.styleDraft?.photos?.length) {
+        sessions.reset(ctx.from.id);
+        return ctx.reply(texts.postActions.sourceLost, {
+          parse_mode: 'HTML',
+          ...kb.backToMenu(),
+        });
+      }
+      const created = await storage.createStyle(ctx.from.id, {
+        name,
+        files: session.styleDraft.photos,
+      });
+      sessions.reset(ctx.from.id);
+      await ctx.reply(texts.styles.saved(created.name), {
+        parse_mode: 'HTML',
+        ...kb.backToMenu(),
+      });
+      return;
+    }
     if (session.mode === 'style_name') {
       const name = (ctx.message.text || '').trim();
       if (!name) return ctx.reply(texts.styles.nameRequired);

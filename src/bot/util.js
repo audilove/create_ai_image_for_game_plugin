@@ -57,6 +57,7 @@ function defaultAspectRatioForType(type) {
     case 'prototype_9_16':
       return '9/16';
     case 'prototype_16_9':
+    case 'ui_asset_pack':
     case 'background':
       return '16/9';
     case 'illustration':
@@ -75,6 +76,7 @@ function defaultAspectRatioForType(type) {
 }
 
 function defaultTransparentForType(type) {
+  if (type === 'ui_asset_pack') return false;
   return type === 'icon' || type === 'illustration';
 }
 

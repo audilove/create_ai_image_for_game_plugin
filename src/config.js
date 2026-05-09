@@ -35,15 +35,16 @@ const HD_ASPECT_RATIOS = {
 };
 
 /** Asset types that should use HD_ASPECT_RATIOS */
-const HD_TYPES = new Set(['background', 'illustration', 'prototype_9_16', 'prototype_16_9']);
+const HD_TYPES = new Set(['background', 'illustration', 'prototype_9_16', 'prototype_16_9', 'ui_asset_pack']);
 
 /** Asset types that should fill the full canvas (cover) instead of contain. */
-const FULLBLEED_TYPES = new Set(['background', 'illustration', 'prototype_9_16', 'prototype_16_9']);
+const FULLBLEED_TYPES = new Set(['background', 'illustration', 'prototype_9_16', 'prototype_16_9', 'ui_asset_pack']);
 
 /** Locked aspect ratios — for these types the user can't override. */
 const LOCKED_ASPECT_RATIOS = {
   prototype_9_16: '9/16',
   prototype_16_9: '16/9',
+  ui_asset_pack: '16/9',
 };
 
 /** Type-specific prompt supplements */
@@ -126,6 +127,21 @@ const TYPE_PROMPTS = {
     'modern game UI design — chunky readable buttons, clear visual hierarchy, generous padding, drop shadows, glow accents',
     'consistent with the reference style; treat references as the visual brand for the game',
     'do NOT generate a single isolated icon or character — generate a FULL game screen with all UI chrome',
+  ],
+  /**
+   * One 16:9 image = dense reference SHEET — many separate UI widgets, not one playable HUD screen.
+   * User prompt describes genre / aesthetics / mood; structure below tells the layout job.
+   */
+  ui_asset_pack: [
+    'OUTPUT: ONE horizontal 16:9 image that reads as a UI/UX STYLE BOARD or COMPONENTS SHEET (design reference mosaic).',
+    'Purpose: show how interface pieces for THIS project could look — for later full-screen prototype generation.',
+    'NOT a single full-screen mockup and NOT one icon: many DISTINCT cells/tiles, each with a different UI element.',
+    'Use a clear grid or organized matrix; each cell has a neutral tile background and a short legible label under the element (correct spelling).',
+    'Include a wide variety: buttons, panels, bars, avatars, tabs, dialogs, counters, typography samples, small icons, list rows, cards, toggles, inputs — whatever fits the described game.',
+    'Group rows or columns by meaning (e.g. profile & social, economy/shop, navigation, vehicles, chat, settings) but ADAPT those categories to the user theme (not fixed to any one genre).',
+    'Cohesive art direction across every cell: same rendering style, palette, and quality level as implied by the user description and project context.',
+    'High density but tidy; readable at small preview size; crisp edges and clear affordances.',
+    'Fill the canvas — avoid large empty margins; keep white space between cells for clarity.',
   ],
 };
 

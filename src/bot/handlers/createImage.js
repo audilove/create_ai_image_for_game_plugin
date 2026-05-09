@@ -108,12 +108,17 @@ function register(bot, deps) {
     });
   }
 
-  async function captionFor(params) {
+  async function captionFor(metaParams) {
+    if (metaParams.packKind === 'asset_pack') {
+      return texts.assetPack.resultCaption({
+        theme: metaParams.packUserTheme || '',
+      });
+    }
     return texts.postActions.caption({
-      prompt: params.prompt,
-      type: TYPE_LABELS_PLAIN[params.type] || params.type,
-      aspectRatio: params.aspectRatio,
-      transparent: params.transparent,
+      prompt: metaParams.prompt,
+      type: TYPE_LABELS_PLAIN[metaParams.type] || metaParams.type,
+      aspectRatio: metaParams.aspectRatio,
+      transparent: metaParams.transparent,
     });
   }
 
@@ -201,13 +206,17 @@ function register(bot, deps) {
     });
     caption += linkSuffix;
 
+    const actions =
+      meta.params.packKind === 'asset_pack'
+        ? kb.assetPackActions(meta.id)
+        : kb.postActions(meta.id);
     await bot.telegram.sendDocument(
       chatId,
       Input.fromBuffer(pngBuf, `${meta.id}.png`),
       {
         caption,
         parse_mode: 'HTML',
-        ...kb.postActions(meta.id),
+        ...actions,
       },
     );
   }
@@ -258,6 +267,9 @@ function register(bot, deps) {
           return;
         case 'generate:regen':
           await processRegenJob(payload);
+          return;
+        case 'generate:asset_pack':
+          await processAssetPackJob(payload);
           return;
         default:
           throw new Error(`Unknown generation job: ${jobName}`);
@@ -313,6 +325,51 @@ function register(bot, deps) {
       await sendResultDocumentByChat({ userId, chatId, meta });
     } catch (err) {
       logger?.error?.('generate failed', err);
+      await sendQueueFailure(chatId, err);
+      throw err;
+    }
+  }
+
+  async function processAssetPackJob(payload) {
+    const { userId, chatId, assetPack } = payload;
+    const userTheme = (assetPack.userTheme || '').trim();
+    if (!userTheme) {
+      await bot.telegram.sendMessage(chatId, texts.wizard.promptRequired, {
+        parse_mode: 'HTML',
+        ...kb.backToMenu(),
+      });
+      return;
+    }
+    try {
+      const result = await generator.generate({
+        prompt: userTheme,
+        type: 'ui_asset_pack',
+        aspectRatio: '16/9',
+        transparent: false,
+        context: assetPack.contextText || '',
+      });
+
+      const webpBuffer = Buffer.from(result.base64, 'base64');
+      const meta = await storage.saveResult(userId, {
+        params: {
+          packKind: 'asset_pack',
+          packUserTheme: userTheme,
+          prompt: userTheme,
+          type: 'ui_asset_pack',
+          aspectRatio: '16/9',
+          transparent: false,
+          contextId: assetPack.contextId || null,
+          contextLabel: assetPack.contextLabel || null,
+          contextText: assetPack.contextText || null,
+          styleId: null,
+          styleLabel: null,
+        },
+        webpBuffer,
+      });
+
+      await sendResultDocumentByChat({ userId, chatId, meta });
+    } catch (err) {
+      logger?.error?.('asset pack generate failed', err);
       await sendQueueFailure(chatId, err);
       throw err;
     }
@@ -808,6 +865,23 @@ function register(bot, deps) {
     });
   });
 
+  bot.action('menu:asset_pack', async (ctx) => {
+    await safeAnswerCb(ctx);
+    sessions.set(ctx.from.id, {
+      mode: 'wiz_asset_pack_prompt',
+      assetPackDraft: {
+        userTheme: null,
+        contextId: null,
+        contextLabel: null,
+        contextText: null,
+      },
+    });
+    await safeEdit(ctx, texts.assetPack.step1Prompt, {
+      parse_mode: 'HTML',
+      ...kb.cancelOnly(),
+    });
+  });
+
   bot.action('menu:detect_layout', async (ctx) => {
     await safeAnswerCb(ctx);
     sessions.set(ctx.from.id, {
@@ -870,6 +944,21 @@ function register(bot, deps) {
 
   bot.on('text', async (ctx, next) => {
     const session = sessions.get(ctx.from.id);
+    if (session.mode === 'wiz_asset_pack_prompt') {
+      const text = (ctx.message.text || '').trim();
+      if (!text) return ctx.reply(texts.wizard.promptRequired);
+      if (text.length > 1500) return ctx.reply(texts.wizard.promptTooLong);
+      session.assetPackDraft.userTheme = text;
+      session.mode = 'wiz_asset_pack_context';
+      const rules = await storage.listRules(ctx.from.id);
+      const reply =
+        texts.assetPack.step2Context +
+        (rules.length === 0 ? `\n\n${texts.wizard.noRules}` : '');
+      return ctx.reply(reply, {
+        parse_mode: 'HTML',
+        ...kb.pickContext(rules, 'wiz:apk_ctx'),
+      });
+    }
     if (session.mode === 'wiz_prompt') {
       const text = (ctx.message.text || '').trim();
       if (!text) return ctx.reply(texts.wizard.promptRequired);
@@ -941,6 +1030,35 @@ function register(bot, deps) {
     }
     session.mode = 'wiz_style';
     await showStepStyle(ctx);
+  });
+
+  bot.action(/^wiz:apk_ctx:(none|[a-z0-9]+)$/i, async (ctx) => {
+    await safeAnswerCb(ctx, '📦');
+    const session = sessions.get(ctx.from.id);
+    if (session.mode !== 'wiz_asset_pack_context' || !session.assetPackDraft?.userTheme) return;
+    const id = ctx.match[1];
+    if (id !== 'none') {
+      const rule = await storage.getRule(ctx.from.id, id);
+      if (rule) {
+        session.assetPackDraft.contextId = rule.id;
+        session.assetPackDraft.contextLabel = rule.name;
+        session.assetPackDraft.contextText = rule.text;
+      }
+    }
+    try {
+      await enqueueGeneration(ctx, 'generate:asset_pack', {
+        userId: ctx.from.id,
+        chatId: ctx.chat.id,
+        assetPack: { ...session.assetPackDraft },
+      });
+      sessions.reset(ctx.from.id);
+      await ctx.reply(texts.wizard.queued, {
+        parse_mode: 'HTML',
+        ...kb.backToMenu(),
+      });
+    } catch {
+      sessions.reset(ctx.from.id);
+    }
   });
 
   /* ─── step 3: style picker (style is OPTIONAL) ───────────────────── */
@@ -1034,6 +1152,13 @@ function register(bot, deps) {
     const buf = meta ? await storage.loadResultBuffer(ctx.from.id, meta.id) : null;
     if (!meta || !buf) {
       return ctx.reply(texts.postActions.sourceLost);
+    }
+    if (meta.params.packKind === 'asset_pack') {
+      await ctx.reply(texts.assetPack.packOnlyActions, {
+        parse_mode: 'HTML',
+        ...kb.backToMenu(),
+      });
+      return;
     }
     sessions.set(ctx.from.id, {
       mode: 'wiz_edit_instruction',
@@ -1168,6 +1293,13 @@ function register(bot, deps) {
     const buf = meta ? await storage.loadResultBuffer(ctx.from.id, meta.id) : null;
     if (!meta || !buf) {
       return ctx.reply(texts.postActions.sourceLost);
+    }
+    if (meta.params.packKind === 'asset_pack') {
+      await ctx.reply(texts.assetPack.packOnlyActions, {
+        parse_mode: 'HTML',
+        ...kb.backToMenu(),
+      });
+      return;
     }
     sessions.set(ctx.from.id, {
       mode: 'wiz_combine_image',

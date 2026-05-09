@@ -328,7 +328,7 @@ function stripRule(r) {
 }
 
 function sanitizeParamsForStorage(params) {
-  return {
+  const base = {
     prompt: params.prompt,
     type: params.type,
     aspectRatio: params.aspectRatio,
@@ -339,6 +339,12 @@ function sanitizeParamsForStorage(params) {
     styleId: params.styleId || null,
     styleLabel: params.styleLabel || null,
   };
+  if (params.packKind === 'asset_pack') {
+    base.packKind = 'asset_pack';
+    base.packUserTheme =
+      params.packUserTheme != null ? String(params.packUserTheme).slice(0, 8000) : '';
+  }
+  return base;
 }
 
 module.exports = JsonStorage;

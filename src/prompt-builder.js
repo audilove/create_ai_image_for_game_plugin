@@ -71,7 +71,11 @@ class PromptBuilder {
   _buildUserText({ prompt, type, aspectRatio, dimensions, transparent, typeHints, style, extra, hasReferences = true }) {
     const lines = [];
 
-    lines.push(`TASK: Generate a game asset.`);
+    const taskLine =
+      type === 'ui_asset_pack'
+        ? `TASK: Generate ONE LANDSCAPE image — a dense UI/UX REFERENCE SHEET (many widgets in a grid), per TYPE-SPECIFIC REQUIREMENTS. The DESCRIPTION plus PROJECT CONTEXT define genre, aesthetics, tone, platforms, and demographic — tailor every tile to THAT project.`
+        : 'TASK: Generate a game asset.';
+    lines.push(taskLine);
     lines.push(`DESCRIPTION: ${prompt}`);
     lines.push(`ASSET TYPE: ${type}`);
     lines.push(`CANVAS SIZE: ${dimensions.width}x${dimensions.height}px (aspect ratio ${aspectRatio})`);
@@ -97,6 +101,8 @@ class PromptBuilder {
 
     if (hasReferences) {
       lines.push(`\nCRITICAL: Reference images are mandatory. Use them as the primary visual source and reproduce their style as closely as possible (palette, lighting, materials, rendering, and level of detail).`);
+    } else if (type === 'ui_asset_pack') {
+      lines.push(`\nNOTE: No reference images. Derive the entire art direction ONLY from DESCRIPTION and PROJECT CONTEXT (style keywords, realism vs stylization, palette, typography mood, platforms). Prefer the user's theme over unrelated defaults from system style hints.`);
     } else {
       lines.push(`\nNOTE: No reference images are provided. Follow the BASE STYLE rules from the system prompt (Pixar-style 3D, vibrant saturated colors, soft glows, polished materials) and any STYLE NOTES above.`);
     }
@@ -105,8 +111,9 @@ class PromptBuilder {
       lines.push(`\nCRITICAL: For background-removal workflow, place the ${type} on a flat, contrasting backdrop (for example bright green/blue/magenta opposite to the subject colors). Keep hard separation and avoid haze, shadows, gradients, or color spill into the subject edges.`);
     }
 
-    lines.push(`\nPlease generate the image now following all the rules above and matching the reference images as closely as possible.`);
-
+    lines.push(hasReferences
+      ? `\nPlease generate the image now following all the rules above and matching the reference images as closely as possible.`
+      : `\nPlease generate the image now following all the rules above.`);
     return lines.join('\n');
   }
 

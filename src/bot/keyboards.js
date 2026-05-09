@@ -7,7 +7,9 @@ const { TYPE_LABELS } = require('./util');
 function mainMenu() {
   return Markup.inlineKeyboard([
     [Markup.button.callback(texts.mainMenu.create, 'menu:create')],
+    [Markup.button.callback(texts.mainMenu.assetPack, 'menu:asset_pack')],
     [Markup.button.callback(texts.mainMenu.uploadEdit, 'menu:upload_edit')],
+    [Markup.button.callback(texts.mainMenu.removeBg, 'menu:remove_bg')],
     [Markup.button.callback(texts.mainMenu.detectLayout, 'menu:detect_layout')],
     [Markup.button.callback(texts.mainMenu.styles, 'menu:styles')],
     [Markup.button.callback(texts.mainMenu.rules, 'menu:rules')],
@@ -135,6 +137,14 @@ function uploadEditAddonSkip() {
   ]);
 }
 
+function assetPackActions(resultId) {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(texts.assetPack.createStyleBtn, `act:style_from_pack:${resultId}`)],
+    [Markup.button.callback(texts.postActions.regenerate, `act:regen:${resultId}`)],
+    [Markup.button.callback(texts.back, 'menu:main')],
+  ]);
+}
+
 function postActions(resultId) {
   return Markup.inlineKeyboard([
     [
@@ -166,4 +176,5 @@ module.exports = {
   confirmLayoutDraft,
   uploadEditAddonSkip,
   postActions,
+  assetPackActions,
 };
