@@ -54,6 +54,8 @@ async function safeEdit(ctx, text, extra) {
 /** Auto-pick a sensible aspect ratio per asset type. */
 function defaultAspectRatioForType(type) {
   switch (type) {
+    case 'generic':
+      return '1/1';
     case 'prototype_9_16':
       return '9/16';
     case 'prototype_16_9':
@@ -76,7 +78,7 @@ function defaultAspectRatioForType(type) {
 }
 
 function defaultTransparentForType(type) {
-  if (type === 'ui_asset_pack') return false;
+  if (type === 'ui_asset_pack' || type === 'generic') return false;
   return type === 'icon' || type === 'illustration';
 }
 
@@ -86,6 +88,7 @@ function isPrototypeType(type) {
 
 /** Bot-facing labels (with emoji). Order here also drives wizard layout. */
 const TYPE_LABELS = {
+  generic: '🚫 Без типа',
   icon: '🟢 Иконка',
   background: '🌄 Фон',
   illustration: '🖼 Иллюстрация',
@@ -101,6 +104,7 @@ const TYPE_LABELS = {
 
 /** Plain labels for captions. */
 const TYPE_LABELS_PLAIN = {
+  generic: 'Без типа',
   icon: 'Иконка',
   background: 'Фон',
   illustration: 'Иллюстрация',

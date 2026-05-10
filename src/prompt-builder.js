@@ -32,7 +32,7 @@ class PromptBuilder {
     const refs = Array.isArray(referenceImages) ? referenceImages : [];
 
     const dimensions = ASPECT_RATIOS[aspectRatio] || ASPECT_RATIOS['1/1'];
-    const typeHints = TYPE_PROMPTS[type] || TYPE_PROMPTS['icon'];
+    const typeHints = TYPE_PROMPTS[type] ?? TYPE_PROMPTS.icon;
     const baseContext = customBaseContext || BASE_CONTEXT;
 
     const systemText = this._buildSystemText(baseContext, context);
@@ -74,10 +74,16 @@ class PromptBuilder {
     const taskLine =
       type === 'ui_asset_pack'
         ? `TASK: Generate ONE LANDSCAPE image — a dense UI/UX REFERENCE SHEET (many widgets in a grid), per TYPE-SPECIFIC REQUIREMENTS. The DESCRIPTION plus PROJECT CONTEXT define genre, aesthetics, tone, platforms, and demographic — tailor every tile to THAT project.`
+        : type === 'generic'
+          ? `TASK: Generate an image from the user description. There is NO fixed asset-type template — interpret DESCRIPTION freely; follow PROJECT CONTEXT and references when provided.`
         : 'TASK: Generate a game asset.';
     lines.push(taskLine);
     lines.push(`DESCRIPTION: ${prompt}`);
-    lines.push(`ASSET TYPE: ${type}`);
+    lines.push(
+      type === 'generic'
+        ? `FORMAT: Open prompt (no category-specific checklist).`
+        : `ASSET TYPE: ${type}`,
+    );
     lines.push(`CANVAS SIZE: ${dimensions.width}x${dimensions.height}px (aspect ratio ${aspectRatio})`);
     lines.push(
       `TRANSPARENT BACKGROUND: ${transparent
@@ -108,7 +114,8 @@ class PromptBuilder {
     }
 
     if (transparent) {
-      lines.push(`\nCRITICAL: For background-removal workflow, place the ${type} on a flat, contrasting backdrop (for example bright green/blue/magenta opposite to the subject colors). Keep hard separation and avoid haze, shadows, gradients, or color spill into the subject edges.`);
+      const subjWord = type === 'generic' ? 'subject' : type;
+      lines.push(`\nCRITICAL: For background-removal workflow, place the ${subjWord} on a flat, contrasting backdrop (for example bright green/blue/magenta opposite to the subject colors). Keep hard separation and avoid haze, shadows, gradients, or color spill into the subject edges.`);
     }
 
     lines.push(hasReferences

@@ -251,3 +251,249 @@
     at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
   command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
 }
+2026-05-09T14:57:48: ReplyError: UNBLOCKED force unblock from blocking operation, instance state changed (master -> replica?)
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '5' ] }
+}
+2026-05-09T14:57:48: ReplyError: UNBLOCKED force unblock from blocking operation, instance state changed (master -> replica?)
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: {
+    name: 'xread',
+    args: [
+      'BLOCK',
+      '10000',
+      'STREAMS',
+      'bull:image-generation:events',
+      '1778337137475-1'
+    ]
+  }
+}
+2026-05-09T14:57:49: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:49: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:49: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:49: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:49: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:49: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:49: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:49: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:49: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:50: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:50: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:50: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:50: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:50: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:50: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:50: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:50: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:50: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:50: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:51: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:51: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:51: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:51: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:51: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:51: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:51: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:51: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:51: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:52: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:52: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:52: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:52: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:52: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:52: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:52: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:52: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:52: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:52: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:53: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:53: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:53: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-09T14:57:53: ReplyError: READONLY You can't write against a read only replica.
+    at parseError (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/apps/create_ai_image_for_game_plugin/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: { name: 'bzpopmin', args: [ 'bull:image-generation:marker', '10' ] }
+}
+2026-05-10T08:49:46: regen failed Error: [GameImageGen] API error 402: {
+  "error": {
+    "message": "This request requires more credits, or fewer max_tokens. You requested up to 32000 tokens, but can only afford 12552. To increase, visit https://openrouter.ai/settings/credits and add more credits",
+    "code": 402,
+    "metadata": {
+      "provider_name": null
+    }
+  },
+  "user_id": "user_32Q8lZVgzgSSyRvNlDzV3KZKuXo"
+}
+    at Generator.generate (/apps/create_ai_image_for_game_plugin/src/generator.js:88:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async GameImageGenerator.generate (/apps/create_ai_image_for_game_plugin/src/index.js:145:34)
+    at async processRegenJob (/apps/create_ai_image_for_game_plugin/src/bot/handlers/createImage.js:834:22)
+    at async processGenerationJob (/apps/create_ai_image_for_game_plugin/src/bot/handlers/createImage.js:269:11)
+    at async /apps/create_ai_image_for_game_plugin/src/bot/handlers/createImage.js:44:7
+    at async /apps/create_ai_image_for_game_plugin/node_modules/bullmq/dist/cjs/classes/worker.js:589:32

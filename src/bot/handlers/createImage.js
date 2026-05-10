@@ -19,13 +19,12 @@ const {
 } = require('../util');
 
 /**
- * 5-step wizard:
- *   1. prompt
- *   2. context (rule pick or skip)
- *   3. style (style pick — required)
- *   4. type (asset type buttons)
- *   5. (for background only) choose orientation 16/9 or 9/16
- * → confirm → generate → send as document with post-action keyboard.
+ * Мастер «Создать изображение»:
+ *   1. промпт
+ *   2. правило (контекст)
+ *   3. стиль
+ *   4. тип (для «Без типа» — шаг 5: формат из всех соотношений)
+ *   5. для фона — 16/9 или 9/16; для прототипов — без шага
  */
 function register(bot, deps) {
   const { storage, sessions, generator, generationQueue, logger, cdn } = deps;
@@ -38,6 +37,23 @@ function register(bot, deps) {
     '⏳ Генерирую изображение...',
   ];
   const ASPECT_RATIO_KEYS = ['1/1', '16/9', '9/16', '4/3', '3/4', '3/2', '2/3', '21/9', '2/1'];
+
+  const ASPECT_RATIO_ROWS = [
+    ['1/1', '16/9', '9/16'],
+    ['4/3', '3/4', '3/2'],
+    ['2/3', '21/9', '2/1'],
+  ];
+
+  /** OpenRouter model slug + масштаб вывода — не в промпт, через image_config. */
+  async function imageGenOpts(uid) {
+    const [slug, imageGenResolutionScale] = await Promise.all([
+      storage.getActiveImageGenModelSlug(uid),
+      storage.getImageGenResolutionScale(uid),
+    ]);
+    const o = { imageGenResolutionScale };
+    if (slug) o.model = slug;
+    return o;
+  }
 
   generationQueue
     .start(async (jobName, data) => {
@@ -86,6 +102,17 @@ function register(bot, deps) {
     await safeEdit(ctx, texts.wizard.step5Ratio, {
       parse_mode: 'HTML',
       ...kb.pickAspectRatio(),
+    });
+  }
+
+  async function showStepAllAspect(ctx) {
+    await safeEdit(ctx, texts.wizard.step5AspectAll, {
+      parse_mode: 'HTML',
+      ...kb.pickAllAspectRatios(
+        ASPECT_RATIO_ROWS,
+        (k) => k.replace('/', ':'),
+        texts.cancel,
+      ),
     });
   }
 
@@ -304,6 +331,7 @@ function register(bot, deps) {
         context: wiz.contextText || '',
         references: refs,
         filename: undefined,
+        ...(await imageGenOpts(userId)),
       });
 
       const webpBuffer = Buffer.from(result.base64, 'base64');
@@ -347,6 +375,7 @@ function register(bot, deps) {
         aspectRatio: '16/9',
         transparent: false,
         context: assetPack.contextText || '',
+        ...(await imageGenOpts(userId)),
       });
 
       const webpBuffer = Buffer.from(result.base64, 'base64');
@@ -410,6 +439,7 @@ function register(bot, deps) {
         transparent: meta.params.transparent === true,
         context: generationContext,
         references: refs,
+        ...(await imageGenOpts(userId)),
       });
 
       const webpBuffer = Buffer.from(result.base64, 'base64');
@@ -483,6 +513,7 @@ function register(bot, deps) {
         transparent: false,
         context: flow.contextText || '',
         references: refs,
+        ...(await imageGenOpts(userId)),
       });
 
       const webpBuffer = Buffer.from(result.base64, 'base64');
@@ -683,6 +714,7 @@ function register(bot, deps) {
             filename: `${slugify(el.name)}_crop.png`,
           }],
           filename: undefined,
+          ...(await imageGenOpts(userId)),
         });
 
         const webpBuf = Buffer.from(generation.base64, 'base64');
@@ -789,6 +821,7 @@ function register(bot, deps) {
         transparent: meta.params.transparent === true,
         context: generationContext,
         references: refs,
+        ...(await imageGenOpts(userId)),
       });
 
       const webpBuffer = Buffer.from(result.base64, 'base64');
@@ -838,6 +871,7 @@ function register(bot, deps) {
         transparent: meta.params.transparent === true,
         context: meta.params.contextText || '',
         references: refs,
+        ...(await imageGenOpts(userId)),
       });
 
       const webpBuffer = Buffer.from(result.base64, 'base64');
@@ -1101,6 +1135,11 @@ function register(bot, deps) {
       session.mode = 'wiz_ratio';
       return showStepRatio(ctx);
     }
+    if (t === 'generic') {
+      session.wiz.aspectRatio = null;
+      session.mode = 'wiz_aspect';
+      return showStepAllAspect(ctx);
+    }
     session.mode = 'wiz_confirm';
     await showSummary(ctx);
   });
@@ -1116,6 +1155,17 @@ function register(bot, deps) {
     await showSummary(ctx);
   });
 
+  bot.action(/^wiz:aspect:(\d+)_(\d+)$/i, async (ctx) => {
+    await safeAnswerCb(ctx);
+    const session = sessions.get(ctx.from.id);
+    if (session.mode !== 'wiz_aspect') return;
+    const aspectRatio = `${ctx.match[1]}/${ctx.match[2]}`;
+    if (!ASPECT_RATIO_KEYS.includes(aspectRatio)) return;
+    session.wiz.aspectRatio = aspectRatio;
+    session.mode = 'wiz_confirm';
+    await showSummary(ctx);
+  });
+
   /* ─── confirm + run generation ───────────────────────────────────── */
 
   bot.action('wiz:go', async (ctx) => {
@@ -1124,6 +1174,8 @@ function register(bot, deps) {
     if (session.mode !== 'wiz_confirm') return;
     const w = session.wiz;
     if (!w.prompt || !w.type) return;
+    const ar = w.aspectRatio || defaultAspectRatioForType(w.type);
+    if (!ar) return;
 
     try {
       await enqueueGeneration(ctx, 'generate:create', {
@@ -1131,7 +1183,7 @@ function register(bot, deps) {
         chatId: ctx.chat.id,
         wiz: {
           ...w,
-          aspectRatio: w.aspectRatio || defaultAspectRatioForType(w.type),
+          aspectRatio: ar,
         },
       });
       sessions.reset(ctx.from.id);

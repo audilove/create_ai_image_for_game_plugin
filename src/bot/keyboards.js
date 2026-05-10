@@ -13,6 +13,8 @@ function mainMenu() {
     [Markup.button.callback(texts.mainMenu.detectLayout, 'menu:detect_layout')],
     [Markup.button.callback(texts.mainMenu.styles, 'menu:styles')],
     [Markup.button.callback(texts.mainMenu.rules, 'menu:rules')],
+    [Markup.button.callback(texts.mainMenu.imageResolution, 'menu:resolution')],
+    [Markup.button.callback(texts.mainMenu.imageModels, 'menu:models')],
     [Markup.button.callback(texts.mainMenu.help, 'menu:help')],
   ]);
 }
@@ -116,6 +118,35 @@ function pickAspectRatio() {
   ]);
 }
 
+/** Все поддерживаемые соотношения сторон (callback: wiz:aspect:16_9). */
+function pickAllAspectRatios(rows, labelFn, cancelText) {
+  const mkButtons = rows.map((keys) =>
+    keys.map((k) => Markup.button.callback(labelFn(k), `wiz:aspect:${k.replace('/', '_')}`)),
+  );
+  return Markup.inlineKeyboard([
+    ...mkButtons,
+    [Markup.button.callback(cancelText, 'wiz:cancel')],
+  ]);
+}
+
+function imageResolutionMenu(currentScale) {
+  const sel = String(currentScale || '1');
+  const row = ['0.5', '1', '2'].map((s) => {
+    const base =
+      s === '0.5'
+        ? texts.resolution.opt05
+        : s === '2'
+          ? texts.resolution.opt2
+          : texts.resolution.opt1;
+    const label = (s === sel ? `${texts.resolution.marker} ` : '') + base;
+    return Markup.button.callback(label, `res:set:${s}`);
+  });
+  return Markup.inlineKeyboard([
+    row,
+    [Markup.button.callback(texts.back, 'menu:main')],
+  ]);
+}
+
 function confirmGenerate() {
   return Markup.inlineKeyboard([
     [Markup.button.callback(texts.wizard.confirmBtn, 'wiz:go')],
@@ -135,6 +166,31 @@ function uploadEditAddonSkip() {
     [Markup.button.callback(texts.skip, 'wiz:upload_edit_addon_skip')],
     [Markup.button.callback(texts.cancel, 'wiz:cancel')],
   ]);
+}
+
+function truncateModelLabel(slug, max = 34) {
+  const t = String(slug || '');
+  return t.length > max ? `${t.slice(0, max - 1)}…` : t;
+}
+
+function imageModelsMenu(models, activeSlug) {
+  const rows = [
+    [Markup.button.callback(texts.imageModels.btnAdd, 'model:add')],
+    [Markup.button.callback(texts.imageModels.btnUseServerDefault, 'model:use_default')],
+  ];
+  for (const m of models) {
+    const on = activeSlug === m.slug;
+    const marker = on ? texts.imageModels.markerActive : texts.imageModels.markerInactive;
+    rows.push([
+      Markup.button.callback(
+        `${marker} ${truncateModelLabel(m.slug)}`,
+        `model:set_active:${m.id}`,
+      ),
+      Markup.button.callback(texts.imageModels.btnDelete, `model:del:${m.id}`),
+    ]);
+  }
+  rows.push([Markup.button.callback(texts.back, 'menu:main')]);
+  return Markup.inlineKeyboard(rows);
 }
 
 function assetPackActions(resultId) {
@@ -171,10 +227,13 @@ module.exports = {
   pickStyle,
   pickType,
   pickAspectRatio,
+  pickAllAspectRatios,
   pickBackground,
   confirmGenerate,
   confirmLayoutDraft,
   uploadEditAddonSkip,
   postActions,
   assetPackActions,
+  imageModelsMenu,
+  imageResolutionMenu,
 };

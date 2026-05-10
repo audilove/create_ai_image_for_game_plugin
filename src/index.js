@@ -10,6 +10,7 @@ const ReferenceLoader = require('./reference-loader');
 const PromptBuilder = require('./prompt-builder');
 const ImageProcessor = require('./image-processor');
 const LayoutDetector = require('./layout-detector');
+const { buildOpenRouterImageConfig } = require('./openrouter-image-config');
 const {
   DEFAULTS,
   ASPECT_RATIOS,
@@ -141,8 +142,17 @@ class GameImageGenerator {
       ? (HD_ASPECT_RATIOS[aspectRatio] || HD_ASPECT_RATIOS['1/1'])
       : dimensions;
 
-    // Call API
-    const { base64, mimeType } = await this._generator.generate(systemText, contentParts);
+    const imageConfig = buildOpenRouterImageConfig(
+      aspectRatio,
+      params.imageGenResolutionScale,
+    );
+    const generateOpts = {};
+    if (params.model) generateOpts.model = params.model;
+    if (imageConfig && imageConfig.image_size) {
+      generateOpts.imageConfig = imageConfig;
+    }
+
+    const { base64, mimeType } = await this._generator.generate(systemText, contentParts, generateOpts);
 
     // Process image (convert to WebP, handle transparency, resize to target)
     const rawBuffer = this._processor.base64ToBuffer(base64);

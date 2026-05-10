@@ -40,7 +40,9 @@ class Generator {
    * @param {Array}  contentParts - Array of message content parts (text + images)
    * @returns {Promise<{base64: string, mimeType: string}>}
    */
-  async generate(systemText, contentParts) {
+  async generate(systemText, contentParts, options = {}) {
+    const model = options.model || this.model;
+
     const messages = [];
 
     if (systemText && systemText.trim()) {
@@ -56,12 +58,16 @@ class Generator {
     });
 
     const requestBody = {
-      model: this.model,
+      model,
       messages,
       // Required for Gemini image generation models to return image output
       modalities: ['image', 'text'],
       max_tokens: this.maxImageOutputTokens,
     };
+
+    if (options.imageConfig && typeof options.imageConfig === 'object') {
+      requestBody.image_config = { ...options.imageConfig };
+    }
 
     const headers = {
       'Authorization': `Bearer ${this.apiKey}`,

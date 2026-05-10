@@ -59,6 +59,7 @@ class JsonStorage {
       await previous;
       const all = this._readAll();
       const user = all[key] || this._emptyUser();
+      migrateLegacyUserRecord(user);
       const result = await fn(user);
       all[key] = user;
       this._writeAll(all);
@@ -72,7 +73,14 @@ class JsonStorage {
   }
 
   _emptyUser() {
-    return { styles: [], rules: [], results: [] };
+    return {
+      styles: [],
+      rules: [],
+      results: [],
+      imageGenModels: [],
+      activeImageGenModelId: null,
+      imageGenResolutionScale: '1',
+    };
   }
 
   _readAll() {
@@ -313,6 +321,124 @@ class JsonStorage {
       /* ignore */
     }
   }
+
+  /* ─── image generation models (OpenRouter model slugs) ───────────────── */
+
+  async listImageGenModels(userId) {
+    const all = this._readAll();
+    const u = all[String(userId)];
+    const arr = Array.isArray(u?.imageGenModels) ? u.imageGenModels : [];
+    return [...arr].sort((a, b) =>
+      String(a.createdAt || '').localeCompare(String(b.createdAt || '')),
+    );
+  }
+
+  /** @returns {Promise<string|null>} slug or null (= use generator default). */
+  async getActiveImageGenModelSlug(userId) {
+    const all = this._readAll();
+    const u = all[String(userId)];
+    if (!u?.activeImageGenModelId) return null;
+    const arr = Array.isArray(u.imageGenModels) ? u.imageGenModels : [];
+    const m = arr.find((x) => x.id === u.activeImageGenModelId);
+    return m?.slug || null;
+  }
+
+  /** @returns {Promise<'0.5'|'1'|'2'>} */
+  async getImageGenResolutionScale(userId) {
+    const all = this._readAll();
+    const u = all[String(userId)];
+    if (!u) return '1';
+    const s = u.imageGenResolutionScale;
+    return s === '0.5' || s === '1' || s === '2' ? s : '1';
+  }
+
+  async setImageGenResolutionScale(userId, scale) {
+    const s = String(scale || '');
+    if (s !== '0.5' && s !== '1' && s !== '2') {
+      throw new Error('INVALID_RESOLUTION_SCALE');
+    }
+    return await this._withUser(userId, (user) => {
+      migrateLegacyUserRecord(user);
+      user.imageGenResolutionScale = s;
+    });
+  }
+
+  /**
+   * Add model from OpenRouter slug, make it active.
+   * @throws {Error} DUPLICATE_SLUG | LIMIT | INVALID_SLUG:*
+   */
+  async addImageGenModel(userId, rawSlug) {
+    const norm = normalizeImageGenSlug(rawSlug);
+    if (!norm.ok) throw new Error(`INVALID_SLUG:${norm.reason}`);
+    const slug = norm.slug;
+    return await this._withUser(userId, (user) => {
+      migrateLegacyUserRecord(user);
+      if (user.imageGenModels.length >= MAX_IMAGE_GEN_MODELS_PER_USER) {
+        throw new Error('LIMIT');
+      }
+      if (user.imageGenModels.some((m) => m.slug === slug)) {
+        throw new Error('DUPLICATE_SLUG');
+      }
+      const id = shortId();
+      const row = { id, slug, createdAt: new Date().toISOString() };
+      user.imageGenModels.push(row);
+      user.activeImageGenModelId = id;
+      return row;
+    });
+  }
+
+  async setActiveImageGenModel(userId, modelIdOrNull) {
+    return await this._withUser(userId, (user) => {
+      migrateLegacyUserRecord(user);
+      if (modelIdOrNull == null || modelIdOrNull === '') {
+        user.activeImageGenModelId = null;
+        return;
+      }
+      const hit = user.imageGenModels.find((x) => x.id === modelIdOrNull);
+      if (!hit) throw new Error('NOT_FOUND');
+      user.activeImageGenModelId = modelIdOrNull;
+    });
+  }
+
+  /** @returns {Promise<boolean>} */
+  async deleteImageGenModel(userId, modelId) {
+    return await this._withUser(userId, (user) => {
+      migrateLegacyUserRecord(user);
+      const beforeLen = user.imageGenModels.length;
+      user.imageGenModels = user.imageGenModels.filter((m) => m.id !== modelId);
+      const removed = user.imageGenModels.length !== beforeLen;
+      if (!removed) return false;
+      if (user.activeImageGenModelId === modelId) {
+        user.activeImageGenModelId = user.imageGenModels[0]?.id || null;
+      }
+      return true;
+    });
+  }
+}
+
+function migrateLegacyUserRecord(user) {
+  if (!Array.isArray(user.styles)) user.styles = [];
+  if (!Array.isArray(user.rules)) user.rules = [];
+  if (!Array.isArray(user.results)) user.results = [];
+  if (!Array.isArray(user.imageGenModels)) user.imageGenModels = [];
+  if (user.activeImageGenModelId === undefined) user.activeImageGenModelId = null;
+  if (user.imageGenResolutionScale === undefined || user.imageGenResolutionScale === null) {
+    user.imageGenResolutionScale = '1';
+  } else if (!['0.5', '1', '2'].includes(String(user.imageGenResolutionScale))) {
+    user.imageGenResolutionScale = '1';
+  }
+}
+
+const MAX_IMAGE_GEN_MODELS_PER_USER = 40;
+
+function normalizeImageGenSlug(raw) {
+  const s = String(raw || '').trim();
+  if (!s) return { ok: false, reason: 'empty' };
+  if (s.length > 200) return { ok: false, reason: 'long' };
+  if (/\s/.test(s)) return { ok: false, reason: 'space' };
+  // OpenRouter identifiers: alphanumeric, slashes, underscores, dots, colons
+  if (!/^[a-zA-Z0-9_/:@.-]+$/.test(s)) return { ok: false, reason: 'chars' };
+  return { ok: true, slug: s };
 }
 
 function shortId() {
@@ -350,4 +476,5 @@ function sanitizeParamsForStorage(params) {
 module.exports = JsonStorage;
 module.exports.JsonStorage = JsonStorage;
 module.exports.shortId = shortId;
+module.exports.normalizeImageGenSlug = normalizeImageGenSlug;
 module.exports.sanitizeParamsForStorage = sanitizeParamsForStorage;

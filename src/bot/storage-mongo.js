@@ -7,10 +7,12 @@ const { connect, disconnect, isReady } = require('./db/connection');
 const Style = require('./db/models/Style');
 const Rule = require('./db/models/Rule');
 const Result = require('./db/models/Result');
-const { shortId, sanitizeParamsForStorage } = require('./storage');
+const UserPrefs = require('./db/models/UserPrefs');
+const { shortId, sanitizeParamsForStorage, normalizeImageGenSlug } = require('./storage');
 
 const MAX_RESULTS_PER_USER = 100;
 const MAX_FILES_PER_STYLE = 10;
+const MAX_IMAGE_GEN_MODELS_PER_USER = 40;
 
 /**
  * MongoDB-backed storage. API mirrors {@link JsonStorage} so the bot is
@@ -269,6 +271,108 @@ class MongoStorage {
     } catch {
       /* ignore */
     }
+  }
+
+  /* ─── image generation models (OpenRouter slugs) ─────────────────── */
+
+  async listImageGenModels(userId) {
+    const doc = await UserPrefs.findOne({ userId: Number(userId) }, { imageGenModels: 1 }).lean();
+    const arr = doc?.imageGenModels || [];
+    return [...arr].sort((a, b) =>
+      String(a.createdAt || '').localeCompare(String(b.createdAt || '')),
+    );
+  }
+
+  async getActiveImageGenModelSlug(userId) {
+    const doc = await UserPrefs.findOne(
+      { userId: Number(userId) },
+      { imageGenModels: 1, activeImageGenModelId: 1 },
+    ).lean();
+    if (!doc?.activeImageGenModelId) return null;
+    const m = (doc.imageGenModels || []).find((x) => x.id === doc.activeImageGenModelId);
+    return m?.slug || null;
+  }
+
+  /** @returns {Promise<'0.5'|'1'|'2'>} */
+  async getImageGenResolutionScale(userId) {
+    const doc = await UserPrefs.findOne({ userId: Number(userId) }, { imageGenResolutionScale: 1 }).lean();
+    const s = doc?.imageGenResolutionScale;
+    return s === '0.5' || s === '1' || s === '2' ? s : '1';
+  }
+
+  async setImageGenResolutionScale(userId, scale) {
+    const s = String(scale || '');
+    if (s !== '0.5' && s !== '1' && s !== '2') {
+      throw new Error('INVALID_RESOLUTION_SCALE');
+    }
+    await UserPrefs.updateOne(
+      { userId: Number(userId) },
+      {
+        $set: { imageGenResolutionScale: s },
+        $setOnInsert: {
+          userId: Number(userId),
+          imageGenModels: [],
+          activeImageGenModelId: null,
+        },
+      },
+      { upsert: true },
+    );
+  }
+
+  async addImageGenModel(userId, rawSlug) {
+    const norm = normalizeImageGenSlug(rawSlug);
+    if (!norm.ok) throw new Error(`INVALID_SLUG:${norm.reason}`);
+    const slug = norm.slug;
+    let doc = await UserPrefs.findOne({ userId: Number(userId) });
+    if (!doc) {
+      doc = new UserPrefs({
+        userId: Number(userId),
+        imageGenModels: [],
+        activeImageGenModelId: null,
+      });
+    }
+    const arr = doc.imageGenModels || [];
+    if (arr.length >= MAX_IMAGE_GEN_MODELS_PER_USER) throw new Error('LIMIT');
+    if (arr.some((m) => m.slug === slug)) throw new Error('DUPLICATE_SLUG');
+    const mid = shortId();
+    doc.imageGenModels.push({ id: mid, slug, createdAt: new Date() });
+    doc.activeImageGenModelId = mid;
+    await doc.save();
+    const row = doc.imageGenModels[doc.imageGenModels.length - 1];
+    return {
+      id: row.id,
+      slug: row.slug,
+      createdAt: row.createdAt?.toISOString?.() || new Date().toISOString(),
+    };
+  }
+
+  async setActiveImageGenModel(userId, modelIdOrNull) {
+    if (modelIdOrNull == null || modelIdOrNull === '') {
+      await UserPrefs.findOneAndUpdate(
+        { userId: Number(userId) },
+        { $set: { activeImageGenModelId: null } },
+      );
+      return;
+    }
+    const doc = await UserPrefs.findOne({ userId: Number(userId) });
+    if (!doc) throw new Error('NOT_FOUND');
+    const hit = (doc.imageGenModels || []).some((x) => x.id === modelIdOrNull);
+    if (!hit) throw new Error('NOT_FOUND');
+    doc.activeImageGenModelId = modelIdOrNull;
+    await doc.save();
+  }
+
+  async deleteImageGenModel(userId, modelId) {
+    const doc = await UserPrefs.findOne({ userId: Number(userId) });
+    if (!doc) return false;
+    const before = (doc.imageGenModels || []).length;
+    doc.imageGenModels = (doc.imageGenModels || []).filter((m) => m.id !== modelId);
+    if (doc.imageGenModels.length === before) return false;
+    if (doc.activeImageGenModelId === modelId) {
+      doc.activeImageGenModelId = doc.imageGenModels[0]?.id || null;
+    }
+    await doc.save();
+    return true;
   }
 }
 

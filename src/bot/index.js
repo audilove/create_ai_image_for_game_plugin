@@ -14,6 +14,8 @@ const registerMainMenu = require('./handlers/mainMenu');
 const registerRules = require('./handlers/rules');
 const registerStyles = require('./handlers/styles');
 const registerRemoveBg = require('./handlers/removeBg');
+const registerImageModels = require('./handlers/imageModels');
+const registerRenderResolution = require('./handlers/renderResolution');
 const registerCreateImage = require('./handlers/createImage');
 
 /**
@@ -36,6 +38,7 @@ const registerCreateImage = require('./handlers/createImage');
  *   - options.allowedUserIds     Iterable of allowed Telegram user ids (whitelist).
  *   - options.logger             console-like logger (info / warn / error).
  *   - options.cdn                  { serveDir, publicBaseUrl } для ссылок WebP (опционально).
+ *   - См. deps.defaultGenModelSlug для подписи меню моделей (берётся из generator.info()).
  */
 function createBot(options) {
   if (!options || !options.token) {
@@ -47,6 +50,15 @@ function createBot(options) {
 
   const logger = options.logger || console;
   const dataDir = path.resolve(options.dataDir || './data');
+
+  let defaultGenModelSlug = '';
+  try {
+    if (options.generator && typeof options.generator.info === 'function') {
+      defaultGenModelSlug = options.generator.info().model || '';
+    }
+  } catch {
+    defaultGenModelSlug = '';
+  }
 
   let storage = options.storage;
   if (!storage) {
@@ -110,6 +122,7 @@ function createBot(options) {
         publicBaseUrl: String(options.cdn.publicBaseUrl || '').trim().replace(/\/$/, ''),
       }
       : { serveDir: '', publicBaseUrl: '' },
+    defaultGenModelSlug,
   };
 
   // Order matters for shared `text` / `photo` listeners — each handler must
@@ -118,6 +131,8 @@ function createBot(options) {
   registerRules(bot, deps);
   registerStyles(bot, deps);
   registerRemoveBg(bot, deps);
+  registerImageModels(bot, deps);
+  registerRenderResolution(bot, deps);
   registerCreateImage(bot, deps);
 
   // Fallback for unrelated text / unknown callbacks

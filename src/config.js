@@ -49,6 +49,8 @@ const LOCKED_ASPECT_RATIOS = {
 
 /** Type-specific prompt supplements */
 const TYPE_PROMPTS = {
+  /** Пустой — без дополнительных type-hints в промпт (режим «Без типа»). */
+  generic: [],
   icon: [
     'single centered isolated object',
     'game icon style',
